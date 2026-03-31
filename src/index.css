@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-luxury-start: #0f172a; /* Slate 900 */
+  --color-luxury-end: #1e3a8a; /* Blue 900 */
+  --color-accent-green: #10b981; /* Emerald 500 */
+  --color-accent-blue: #3b82f6; /* Blue 500 */
+}
+
+body {
+  background: linear-gradient(135deg, var(--color-luxury-start), var(--color-luxury-end));
+  color: white;
+  font-family: 'Inter', sans-serif;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+}

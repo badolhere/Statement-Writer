@@ -1,0 +1,5 @@
+{
+  "name": "Asylum Statement Assistant",
+  "description": "An AI assistant to help users generate personalized asylum statements.",
+  "requestFramePermissions": []
+}
