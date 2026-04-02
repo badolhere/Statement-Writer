@@ -110,14 +110,21 @@ export default function App() {
     const timer = setInterval(() => {
         setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      setError('Gemini API Key is missing. Please add VITE_GEMINI_API_KEY to your environment variables.');
+      setLoading(false);
+      clearInterval(timer);
+      return;
+    }
+    const ai = new GoogleGenAI({ apiKey });
     
     const finalAnswers = currentAnswers || answers;
     const prompt = `Act as an expert immigration attorney. Generate a highly detailed, professional, and unique asylum statement (Form I-589 supporting declaration) based on the following profile: ${JSON.stringify(profile)} and detailed questionnaire answers: ${JSON.stringify(finalAnswers)}. 
     
     CRITICAL INSTRUCTIONS:
     1. Use ALL the information provided in the profile (Name, USA Status, etc.) and the questionnaire (Travel, Incidents, Fear, etc.).
-    2. The statement must be 3-6 pages long, emotional, legally structured, and chronologically consistent.
+    2. The statement must be detailed, emotional, legally structured, and chronologically consistent.
     3. Include sections: Personal Background, Political/Social Involvement, Persecution & Attacks, Flight from Country, Entry into USA, Fear of Return, and Conclusion.
     4. Generate the statement in both English and Bengali.
     5. Format the output as a JSON object with keys "english" and "bengali".
@@ -126,7 +133,7 @@ export default function App() {
     for (let i = 0; i < retries; i++) {
       try {
         const response = await ai.models.generateContent({
-          model: 'gemini-3.1-pro-preview',
+          model: 'gemini-3-flash-preview',
           contents: prompt,
           config: { responseMimeType: 'application/json' }
         });
