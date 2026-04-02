@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pencil, Trash2, Search, Folder, FileText, Plus, Target, Clock, Users, User, Home, BookOpen } from 'lucide-react';
+import { Pencil, Trash2, Search, Folder, FileText, Plus, Target, Clock, Users, User, Home, BookOpen, PenTool, UserPlus } from 'lucide-react';
 
 const Dashboard = ({ profile, history, onNavigate }: { profile: any, history: any[], onNavigate: (page: string) => void }) => {
   return (
@@ -8,11 +8,21 @@ const Dashboard = ({ profile, history, onNavigate }: { profile: any, history: an
       <div className="flex justify-between items-center mt-5">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">𝓑𝓪𝓭𝓸𝓵'𝓼 Assistant</h1>
-          <p className="text-gray-600">Welcome back, {profile?.fullNameEn || 'User'}</p>
+          <p className="text-gray-600">Welcome back, {profile?.fullName || 'User'}</p>
         </div>
-        <button className="p-2 bg-white rounded-full shadow-sm" onClick={() => onNavigate('profile')}>
-          <User size={24} className="text-emerald-600" />
-        </button>
+        <div className="flex gap-2">
+          {!profile && (
+            <button 
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-full shadow-sm text-sm font-medium hover:bg-emerald-700 transition"
+              onClick={() => onNavigate('wizard')}
+            >
+              <UserPlus size={18} /> Register
+            </button>
+          )}
+          <button className="p-2 bg-white rounded-full shadow-sm" onClick={() => onNavigate('profile')}>
+            <User size={24} className="text-emerald-600" />
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -54,11 +64,12 @@ const Dashboard = ({ profile, history, onNavigate }: { profile: any, history: an
       </button>
 
       {/* Bottom Tab Bar */}
-      <div className="fixed bottom-0 left-0 right-0 flex justify-around py-4 border-t border-gray-100 bg-white/80 backdrop-blur-md">
+      <div className="fixed bottom-0 left-0 right-0 flex justify-around py-4 border-t border-gray-100 bg-white/80 backdrop-blur-md z-50">
         <TabItem icon={Clock} label="Recent" onClick={() => onNavigate('history')} />
         <TabItem icon={Home} label="Home" active onClick={() => onNavigate('home')} />
-        <TabItem icon={BookOpen} label="Political History" onClick={() => onNavigate('politicalHistory')} />
-        <TabItem icon={User} label="Profile" onClick={() => onNavigate('profile')} />
+        <TabItem icon={PenTool} label="Your Statement" onClick={() => onNavigate('yourStatement')} />
+        <TabItem icon={BookOpen} label="Politics" onClick={() => onNavigate('politicalHistory')} />
+        <TabItem icon={User} label="Personal Info" onClick={() => onNavigate('profile')} />
       </div>
     </div>
   );
