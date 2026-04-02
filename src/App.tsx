@@ -191,7 +191,7 @@ export default function App() {
         <div className="p-8 flex flex-col items-center">
           <header className="mb-12 text-center relative">
             <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-blue-400">
-              𝓑𝓪𝓭𝓸𝓵'𝓼 Statement Assistant™
+              Writer Badol
             </h1>
             <p className="text-gray-300 mt-2">Professional AI Legal Support</p>
             <button className="absolute top-0 right-0 p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
