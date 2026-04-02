@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 import ProfileWizard from './components/ProfileWizard';
 import History from './components/History';
 import Dashboard from './components/Dashboard';
@@ -112,7 +112,7 @@ export default function App() {
     }, 1000);
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      setError('Gemini API Key is missing. Please add VITE_GEMINI_API_KEY to your environment variables.');
+      setError('Gemini API Key is missing. Please add VITE_GEMINI_API_KEY to your Vercel environment variables. / জেমিনি এপিআই কি পাওয়া যায়নি। দয়া করে ভার্সেল এনভায়রনমেন্ট ভেরিয়েবলে VITE_GEMINI_API_KEY যোগ করুন।');
       setLoading(false);
       clearInterval(timer);
       return;
@@ -133,21 +133,33 @@ export default function App() {
     for (let i = 0; i < retries; i++) {
       try {
         const response = await ai.models.generateContent({
-          model: 'gemini-3-flash-preview',
+          model: 'gemini-flash-latest',
           contents: prompt,
-          config: { responseMimeType: 'application/json' }
+          config: { 
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                english: { type: Type.STRING },
+                bengali: { type: Type.STRING }
+              },
+              required: ["english", "bengali"]
+            }
+          }
         });
         
         const result = JSON.parse(response.text || '{}');
+        if (!result.english || !result.bengali) throw new Error('Invalid response format from AI. / এআই থেকে ভুল ফরম্যাটে রেসপন্স এসেছে।');
+        
         setStatement(result);
         await saveStatement(result);
         setLoading(false);
         clearInterval(timer);
         return;
-      } catch (err) {
+      } catch (err: any) {
         console.error(`Attempt ${i + 1} failed:`, err);
         if (i === retries - 1) {
-          setError('Failed to generate statement after multiple attempts. Please try again later.');
+          setError(`Failed to generate statement: ${err.message || 'Unknown error'}. Please check your API key and connection. / স্টেটমেন্ট জেনারেট করতে সমস্যা হয়েছে: ${err.message || 'অজানা সমস্যা'}। দয়া করে আপনার এপিআই কি এবং কানেকশন চেক করুন।`);
         } else {
           await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
         }
