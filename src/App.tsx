@@ -9,7 +9,7 @@ import YourStatement from './components/YourStatement';
 import ProfileView from './components/ProfileView';
 import Auth from './components/Auth';
 import { supabase } from './lib/supabase';
-import jsPDF from 'jspdf';
+import { generateAsylumPDF } from './lib/pdfGenerator';
 import { MoreVertical, LogOut, AlertTriangle } from 'lucide-react';
 
 export default function App() {
@@ -128,7 +128,8 @@ export default function App() {
     3. Include sections: Personal Background, Political/Social Involvement, Persecution & Attacks, Flight from Country, Entry into USA, Fear of Return, and Conclusion.
     4. Generate the statement in both English and Bengali.
     5. Format the output as a JSON object with keys "english" and "bengali".
-    6. Ensure the tone is formal yet compelling, suitable for a legal declaration.`;
+    6. Ensure the tone is formal yet compelling, suitable for a legal declaration.
+    7. Use markdown bold (**text**) for person names, incidents, threats, locations, and key dates in BOTH English and Bengali.`;
 
     for (let i = 0; i < retries; i++) {
       try {
@@ -169,22 +170,12 @@ export default function App() {
     clearInterval(timer);
   };
 
-  const addHeaderFooter = (doc: jsPDF, name: string) => {
-    const pageCount = doc.internal.pages.length - 1;
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(10);
-      doc.text(`Name: ${name}`, 10, 10);
-      doc.text(`Page ${i} of ${pageCount}`, 190, 285, { align: 'right' });
-    }
-  };
-
   if (!session) {
     return <Auth onAuthSuccess={() => {}} />;
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       {showDashboard ? (
         <Dashboard 
           profile={profile} 
@@ -207,27 +198,29 @@ export default function App() {
           }} 
         />
       ) : (
-        <div className="p-8 flex flex-col items-center">
-          <header className="mb-12 text-center relative">
-            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-blue-400">
-              Writer Badol
-            </h1>
-            <p className="text-gray-300 mt-2">Professional AI Legal Support</p>
-            <button className="absolute top-0 right-0 p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              <MoreVertical />
-            </button>
-            {isMenuOpen && (
-              <div className="absolute top-10 right-0 bg-gray-800 rounded shadow-lg p-2 z-10 text-left">
-                <button className="block w-full text-left p-2 hover:bg-gray-700" onClick={() => { setIsMenuOpen(false); setProfile(null); setStatement(null); setShowHistory(false); setShowPoliticalHistory(false); setShowYourStatement(false); setShowProfile(false); setShowDashboard(true); }}>Home</button>
-                <button className="block w-full text-left p-2 hover:bg-gray-700" onClick={() => { setIsMenuOpen(false); setShowProfile(true); setShowHistory(false); setShowPoliticalHistory(false); setShowYourStatement(false); setShowDashboard(false); }}>Profile</button>
-                <button className="block w-full text-left p-2 hover:bg-gray-700" onClick={() => { setIsMenuOpen(false); setShowHistory(true); setShowPoliticalHistory(false); setShowYourStatement(false); setShowProfile(false); setShowDashboard(false); }}>History</button>
-                <button className="block w-full text-left p-2 hover:bg-gray-700" onClick={() => { setIsMenuOpen(false); setShowPoliticalHistory(true); setShowHistory(false); setShowYourStatement(false); setShowProfile(false); setShowDashboard(false); }}>Political History</button>
-                <button className="block w-full text-left p-2 hover:bg-gray-700" onClick={() => { setIsMenuOpen(false); setShowYourStatement(true); setShowHistory(false); setShowPoliticalHistory(false); setShowProfile(false); setShowDashboard(false); }}>Your Statement</button>
-                <button className="block w-full text-left p-2 hover:bg-gray-700" onClick={async () => { await supabase.auth.signOut(); setIsMenuOpen(false); }}>Sign Out</button>
-                <button className="block w-full text-left p-2 hover:bg-gray-700" onClick={() => setIsMenuOpen(false)}>Settings</button>
-                <button className="block w-full text-left p-2 hover:bg-gray-700" onClick={() => setIsMenuOpen(false)}>About</button>
-              </div>
-            )}
+        <div className="p-4 md:p-8 flex flex-col items-center w-full max-w-4xl mx-auto">
+          <header className="mb-8 md:mb-12 w-full flex justify-between items-center relative">
+            <div className="flex-1 text-center">
+              <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-blue-400">
+                Writer Badol
+              </h1>
+              <p className="text-gray-300 mt-2 text-sm md:text-base">Professional AI Legal Support</p>
+            </div>
+            <div className="absolute right-0 top-0">
+              <button className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors backdrop-blur-md" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                <MoreVertical className="text-white" />
+              </button>
+              {isMenuOpen && (
+                <div className="absolute top-12 right-0 bg-gray-800 rounded-xl shadow-2xl p-2 z-50 text-left w-48 border border-gray-700">
+                  <button className="block w-full text-left p-2 hover:bg-gray-700 rounded-lg transition-colors text-white" onClick={() => { setIsMenuOpen(false); setProfile(null); setStatement(null); setShowHistory(false); setShowPoliticalHistory(false); setShowYourStatement(false); setShowProfile(false); setShowDashboard(true); }}>Home</button>
+                  <button className="block w-full text-left p-2 hover:bg-gray-700 rounded-lg transition-colors text-white" onClick={() => { setIsMenuOpen(false); setShowProfile(true); setShowHistory(false); setShowPoliticalHistory(false); setShowYourStatement(false); setShowDashboard(false); }}>Profile</button>
+                  <button className="block w-full text-left p-2 hover:bg-gray-700 rounded-lg transition-colors text-white" onClick={() => { setIsMenuOpen(false); setShowHistory(true); setShowPoliticalHistory(false); setShowYourStatement(false); setShowProfile(false); setShowDashboard(false); }}>History</button>
+                  <button className="block w-full text-left p-2 hover:bg-gray-700 rounded-lg transition-colors text-white" onClick={() => { setIsMenuOpen(false); setShowPoliticalHistory(true); setShowHistory(false); setShowYourStatement(false); setShowProfile(false); setShowDashboard(false); }}>Political History</button>
+                  <button className="block w-full text-left p-2 hover:bg-gray-700 rounded-lg transition-colors text-white" onClick={() => { setIsMenuOpen(false); setShowYourStatement(true); setShowHistory(false); setShowPoliticalHistory(false); setShowProfile(false); setShowDashboard(false); }}>Your Statement</button>
+                  <button className="block w-full text-left p-2 hover:bg-gray-700 rounded-lg transition-colors text-red-400" onClick={async () => { await supabase.auth.signOut(); setIsMenuOpen(false); }}>Sign Out</button>
+                </div>
+              )}
+            </div>
           </header>
 
           {error && (
@@ -260,30 +253,18 @@ export default function App() {
           ) : !profile || isEditing ? (
             <ProfileWizard onComplete={(data) => { saveProfile(data); setIsEditing(false); setShowDashboard(true); }} initialProfile={isEditing ? profile : null} onBack={() => { setIsEditing(false); setShowDashboard(true); }} />
           ) : (
-            <div className="w-full max-w-2xl glass p-8">
+            <div className="w-full max-w-2xl glass p-8 mb-8">
               {statement && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="prose text-white"
+                  className="prose prose-invert max-w-none"
                 >
                   <h2 className="text-2xl font-semibold mb-4">Your Asylum Statement</h2>
                   <button 
                     className="mb-4 bg-blue-600 text-white px-4 py-2 rounded mr-2"
-                    onClick={() => {
-                      const doc = new jsPDF({ format: 'letter' });
-                      doc.setFontSize(12);
-                      const lines = doc.splitTextToSize(statement.english, 190);
-                      let y = 20;
-                      for (let i = 0; i < lines.length; i++) {
-                        if (y > 270) {
-                          doc.addPage();
-                          y = 20;
-                        }
-                        doc.text(lines[i], 10, y);
-                        y += 7;
-                      }
-                      addHeaderFooter(doc, profile.fullName || 'Applicant');
+                    onClick={async () => {
+                      const doc = await generateAsylumPDF(statement.english, profile.fullName || 'Applicant', false);
                       doc.save('asylum-statement-english.pdf');
                     }}
                   >
@@ -291,22 +272,8 @@ export default function App() {
                   </button>
                   <button 
                     className="mb-4 bg-blue-600 text-white px-4 py-2 rounded"
-                    onClick={() => {
-                      const doc = new jsPDF({ format: 'letter' });
-                      // NOTE: Bengali font support requires an external font file.
-                      // This is a best-effort implementation using standard fonts.
-                      doc.setFontSize(12);
-                      const lines = doc.splitTextToSize(statement.bengali, 190);
-                      let y = 20;
-                      for (let i = 0; i < lines.length; i++) {
-                        if (y > 270) {
-                          doc.addPage();
-                          y = 20;
-                        }
-                        doc.text(lines[i], 10, y);
-                        y += 7;
-                      }
-                      addHeaderFooter(doc, profile.fullName || 'আবেদনকারী');
+                    onClick={async () => {
+                      const doc = await generateAsylumPDF(statement.bengali, profile.fullName || 'আবেদনকারী', true);
                       doc.save('asylum-statement-bengali.pdf');
                     }}
                   >
